@@ -9,8 +9,8 @@ frontend:
 image:
   backend:
     repository: ghcr.io/obisu/my-flask-app/backend
-    tag: ""
+    tag: "latest"
   frontend:
     repository: ghcr.io/obisu/my-flask-app/frontend
-    tag: ""
+    tag: "latest"
 
