@@ -15,6 +15,9 @@ jobs:
       - name: Set up kubectl
         uses: azure/setup-kubectl@v4
 
+      - name: Create kube directory
+        run: mkdir -p $HOME/.kube
+
       - name: Load kubeconfig
         run: |
           echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
@@ -30,3 +33,4 @@ jobs:
             --values helm/my-app/values-staging.yaml \
             --atomic \
             --timeout 5m
+
