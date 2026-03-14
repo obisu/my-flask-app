@@ -1,0 +1,88 @@
+import React, { useEffect, useState } from "react";
+
+function UsersList() {
+  const [users, setUsers] = useState([]);
+
+  // ----------------------------------------------------
+  // Fetch all users from backend
+  // Backend returns: { users: [...] }
+  // ----------------------------------------------------
+  const fetchUsers = async () => {
+    try {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      setUsers(data.users || []); // ensure array
+    } catch (err) {
+      console.error("Failed to fetch users:", err);
+    }
+  };
+
+  // ----------------------------------------------------
+  // Delete a user by ID
+  // Correct backend route: DELETE /api/users/<id>
+  // ----------------------------------------------------
+  const deleteUser = async (id) => {
+    try {
+      await fetch(`/api/users/${id}`, { method: "DELETE" });
+      fetchUsers(); // refresh list
+    } catch (err) {
+      console.error("Failed to delete user:", err);
+    }
+  };
+
+  // Load users on page load
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>All Users</h1>
+
+      <table style={{ width: "500px", borderCollapse: "collapse" }}>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Delete</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {users.map((u) => (
+            <tr key={u.id}>
+              <td>{u.id}</td>
+              <td>{u.name}</td>
+              <td>
+                <button
+                  onClick={() => deleteUser(u.id)}
+                  style={{
+                    background: "red",
+                    color: "white",
+                    border: "none",
+                    padding: "6px 12px",
+                    cursor: "pointer",
+                    borderRadius: "4px",
+                  }}
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+
+          {users.length === 0 && (
+            <tr>
+              <td colSpan="3" style={{ textAlign: "center", padding: "10px" }}>
+                No users found.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+export default UsersList;
+

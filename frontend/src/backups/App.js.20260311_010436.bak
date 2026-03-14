@@ -1,0 +1,53 @@
+import React, { useState, useEffect } from "react";
+
+function App() {
+  const [status, setStatus] = useState("loading...");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [loginMessage, setLoginMessage] = useState("");
+
+  useEffect(() => {
+    fetch("/api/health")
+      .then(res => res.json())
+      .then(data => setStatus(data.status))
+      .catch(() => setStatus("error"));
+  }, []);
+
+  const handleLogin = () => {
+    fetch("/api/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password })
+    })
+      .then(res => res.json())
+      .then(data => setLoginMessage(data.message || data.error));
+  };
+
+  return (
+    <div style={{ padding: "2rem", fontFamily: "Arial" }}>
+      <h1>Frontend Connected</h1>
+      <p>Backend status: {status}</p>
+
+      <h2>Login</h2>
+      <input
+        placeholder="username"
+        value={username}
+        onChange={e => setUsername(e.target.value)}
+      />
+      <br />
+      <input
+        placeholder="password"
+        type="password"
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+      />
+      <br />
+      <button onClick={handleLogin}>Login</button>
+
+      <p>{loginMessage}</p>
+    </div>
+  );
+}
+
+export default App;
+

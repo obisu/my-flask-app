@@ -1,0 +1,47 @@
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+
+import Login from "./pages/auth/Login";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Navbar from "./components/layout/Navbar";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Logout from "./components/auth/Logout";
+import AddUser from "./pages/AddUser";
+import UsersList from "./pages/UsersList";
+import EditUser from "./pages/EditUser";
+
+// 👉 ADDED: import for the DB test page
+import DbTest from "./pages/DbTest";
+
+function App() {
+  return (
+    <Router>
+      <Navbar />
+
+      <Routes>
+        <Route path="/" element={<Login />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route path="/logout" element={<Logout />} />
+
+        {/* 👉 ADDED: simple route to test database connectivity */}
+        <Route path="/db-test" element={<DbTest />} />
+        <Route path="/add-user" element={<AddUser />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/users" element={<UsersList />} />
+        <Route path="/edit-user/:id" element={<EditUser />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+

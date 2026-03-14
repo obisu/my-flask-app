@@ -1,0 +1,60 @@
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route("/ingress/status", methods=["GET"])
+def ingress_status():
+    return jsonify({"status": "ok"}), 200
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
+
+@app.route("/api/users", methods=["GET"])
+def get_users():
+    users = [
+        {"id": 1, "name": "Alice"},
+        {"id": 2, "name": "Bob"},
+        {"id": 3, "name": "Charlie"}
+    ]
+    return jsonify(users), 200
+
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    if data["username"] == "admin" and data["password"] == "secret":
+        return jsonify({"message": "Login successful"}), 200
+
+    return jsonify({"message": "Invalid credentials"}), 401
+
+@app.route("/api/data", methods=["GET"])
+def get_data():
+    sample_data = {
+        "temperature": 22.5,
+        "humidity": 60,
+        "status": "stable"
+    }
+    return jsonify(sample_data), 200
+
+@app.route("/")
+def index():
+    return jsonify({"message": "Backend is alive"}), 200
+@app.route("/api/status", methods=["GET"])
+def api_status():
+    return jsonify({"status": "ok"}), 200
+
+
+@app.route("/flask/health")
+def flask_health():
+    return {"message": "Backend is alive"}
+
+@app.route("/api/users")
+def list_users():
+    db = SessionLocal()
+    users = db.query(User).all()
+    return jsonify([{"id": u.id, "username": u.username, "password": u.password} for u in users])
+

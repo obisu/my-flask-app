@@ -1,0 +1,25 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: "0 3 * * *"
+  workflow_dispatch:
+
+jobs:
+  scan-images:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u obisu --password-stdin
+
+      - name: Scan backend image
+        run: |
+          trivy image ghcr.io/obisu/my-flask-app/backend:latest
+
+      - name: Scan frontend image
+        run: |
+          trivy image ghcr.io/obisu/my-flask-app/frontend:latest

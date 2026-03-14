@@ -1,0 +1,15 @@
+environment: "production"
+
+backend:
+  replicas: 3
+
+frontend:
+  replicas: 3
+
+image:
+  backend:
+    repository: ghcr.io/obisu/my-flask-app/backend
+    tag: "production"
+  frontend:
+    repository: ghcr.io/obisu/my-flask-app/frontend
+    tag: "production"

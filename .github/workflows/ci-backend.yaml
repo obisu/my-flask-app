@@ -1,0 +1,26 @@
+name: CI - Backend
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/ci-backend.yaml"
+
+jobs:
+  build-and-push-backend:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u obisu --password-stdin
+
+      - name: Build backend image
+        run: |
+          docker build -t ghcr.io/obisu/my-flask-app/backend:${{ github.sha }} backend
+
+      - name: Push backend image
+        run: |
+          docker push ghcr.io/obisu/my-flask-app/backend:${{ github.sha }}

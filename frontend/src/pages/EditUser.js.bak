@@ -1,0 +1,45 @@
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
+
+function EditUser() {
+  const { id } = useParams();
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    fetch(`/api/users`)
+      .then((res) => res.json())
+      .then((users) => {
+        const user = users.find((u) => u.id === Number(id));
+        if (user) setName(user.name);
+      });
+  }, [id]);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    await fetch(`/api/update-user/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    });
+
+    alert("User updated");
+  };
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>Edit User</h1>
+
+      <form onSubmit={handleSubmit}>
+        <input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          style={{ padding: "10px", width: "300px" }}
+        />
+        <button style={{ marginLeft: "10px" }}>Save</button>
+      </form>
+    </div>
+  );
+}
+
+export default EditUser;

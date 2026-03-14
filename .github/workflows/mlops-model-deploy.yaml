@@ -1,0 +1,37 @@
+name: MLOps - Model Deploy
+
+on:
+  push:
+    paths:
+      - "ml/**"
+      - ".github/workflows/mlops-model-deploy.yaml"
+
+jobs:
+  deploy-model:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u obisu --password-stdin
+
+      - name: Build model-serving image
+        run: |
+          docker build -t ghcr.io/obisu/my-flask-app/model-serving:${{ github.sha }} ml
+
+      - name: Push model-serving image
+        run: |
+          docker push ghcr.io/obisu/my-flask-app/model-serving:${{ github.sha }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Load kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG_DATA_PRODUCTION }}" | base64 --decode > $HOME/.kube/config
+
+      - name: Apply model-serving deployment
+        run: |
+          kubectl set image deployment/model-serving model-serving=ghcr.io/obisu/my-flask-app/model-serving:${{ github.sha }}

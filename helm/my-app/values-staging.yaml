@@ -1,0 +1,15 @@
+environment: "staging"
+
+backend:
+  replicas: 1
+
+frontend:
+  replicas: 1
+
+image:
+  backend:
+    repository: ghcr.io/obisu/my-flask-app/backend
+    tag: "staging"
+  frontend:
+    repository: ghcr.io/obisu/my-flask-app/frontend
+    tag: "staging"

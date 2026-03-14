@@ -1,0 +1,293 @@
+from flask import Flask, request, jsonify
+from app.db import SessionLocal
+from app.models import User
+
+app = Flask(__name__)
+
+# -----------------------------
+# Health + Status Endpoints
+# -----------------------------
+@app.route("/ingress/status", methods=["GET"])
+def ingress_status():
+    return jsonify({"status": "ok"}), 200
+
+@app.route("/api/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok"}), 200
+
+@app.route("/api/status", methods=["GET"])
+def api_status():
+    return jsonify({"status": "ok"}), 200
+
+@app.route("/flask/health")
+def flask_health():
+    return {"message": "Backend is alive"}
+
+@app.route("/")
+def index():
+    return jsonify({"message": "Backend is alive"}), 200
+
+
+# -----------------------------
+# USERS (Original Sample Endpoint)
+# -----------------------------
+@app.route("/api/users-sample", methods=["GET"])
+def get_users_sample():
+    users = [
+        {"id": 1, "name": "Alice"},
+        {"id": 2, "name": "Bob"},
+        {"id": 3, "name": "Charlie"}
+    ]
+    return jsonify(users), 200
+
+
+# -----------------------------
+# USERS (DB-backed CRUD)
+# -----------------------------
+@app.route("/api/users", methods=["GET"])
+def list_users():
+    db = SessionLocal()
+    users = db.query(User).all()
+    return jsonify([
+        {"id": u.id, "name": u.username}
+        for u in users
+    ]), 200
+
+
+@app.route("/api/users", methods=["POST"])
+def create_user():
+    data = request.get_json()
+    name = data.get("name")
+
+    if not name:
+        return jsonify({"error": "Name is required"}), 400
+
+    db = SessionLocal()
+    new_user = User(username=name)
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return jsonify({
+        "message": "User added",
+        "user": {"id": new_user.id, "name": new_user.username}
+    }), 201
+
+
+@app.route("/api/users/<int:user_id>", methods=["DELETE"])
+def delete_user(user_id):
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    db.delete(user)
+    db.commit()
+    return jsonify({"message": "User deleted"}), 200
+
+
+@app.route("/api/users/<int:user_id>", methods=["PUT"])
+def update_user(user_id):
+    data = request.get_json()
+    new_name = data.get("name")
+
+    if not new_name:
+        return jsonify({"error": "Name is required"}), 400
+
+    db = SessionLocal()
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    user.username = new_name
+    db.commit()
+    db.refresh(user)
+
+    return jsonify({
+        "message": "User updated",
+        "user": {"id": user.id, "name": user.username}
+    }), 200
+
+
+# -----------------------------
+# LOGIN (simple demo)
+# -----------------------------
+@app.route("/api/login", methods=["POST"])
+def login():
+    data = request.get_json()
+
+    if not data or "username" not in data or "password" not in data:
+        return jsonify({"error": "Missing username or password"}), 400
+
+    if data["username"] == "admin" and data["password"] == "secret":
+        return jsonify({"message": "Login successful"}), 200
+
+    return jsonify({"message": "Invalid credentials"}), 401
+
+
+# -----------------------------
+# SAMPLE DATA ROUTE
+# -----------------------------
+@app.route("/api/data", methods=["GET"])
+def get_data():
+    sample_data = {
+        "temperature": 22.5,
+        "humidity": 60,
+        "status": "stable"
+    }
+    return jsonify(sample_data), 200
+
+
+# -----------------------------
+# FLASK ENTRYPOINT
+# -----------------------------
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
+# -----------------------------------------------
+# User Activity Analytics Endpoint
+# -----------------------------------------------
+# This endpoint returns how many users were created
+# on each weekday (Mon–Fri). It powers the dashboard
+# activity chart.
+#
+# NOTE:
+# - Requires User.created_at to exist.
+# - If you don't have created_at yet, I can add it.
+# -----------------------------------------------
+
+@app.route("/api/stats/user-activity", methods=["GET"])
+def user_activity():
+    try:
+        # Query the database:
+        # - Convert created_at timestamp into a weekday abbreviation (Mon, Tue, etc.)
+        # - Count how many users were created on each weekday
+        # - Group results by weekday
+        # - Order by weekday for consistent output
+        results = (
+            db.session.query(
+                func.to_char(User.created_at, 'Dy').label('day'),
+                func.count(User.id).label('count')
+            )
+            .group_by('day')
+            .order_by('day')
+            .all()
+        )
+
+        # Convert query results into a dictionary:
+        # Example: {"Mon": 3, "Tue": 5, ...}
+        activity = {day: count for day, count in results}
+
+        # Ensure all weekdays exist in the response,
+        # even if the count is zero.
+        weekdays = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+        for w in weekdays:
+            activity.setdefault(w, 0)
+
+        # Return the final JSON response
+        return jsonify({"activity": activity})
+
+    except Exception as e:
+        # If anything goes wrong (DB error, missing column, etc.)
+        # return a clean JSON error instead of crashing.
+        return jsonify({"error": str(e)}), 500
+# ---------------------------------------------------------
+# System Health API
+# ---------------------------------------------------------
+# This endpoint provides real-time system diagnostics for
+# the dashboard. It checks:
+#   - Backend uptime
+#   - Database connectivity
+#   - Database latency (simple SELECT 1)
+#   - Backend version info
+#   - Timestamp of the check
+#
+# The frontend dashboard will use this to show:
+#   - Backend Status
+#   - Database Status
+#   - Latency indicators
+# ---------------------------------------------------------
+
+import time
+from datetime import datetime
+from sqlalchemy import text
+
+# Track backend start time for uptime calculation
+START_TIME = time.time()
+
+@app.route("/api/stats/system-health", methods=["GET"])
+def system_health():
+    health = {
+        "backend": "online",
+        "database": "unknown",
+        "db_latency_ms": None,
+        "uptime_seconds": int(time.time() - START_TIME),
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+        "version": "1.0.0"  # You can update this anytime
+    }
+
+    # -----------------------------------------------------
+    # Database Connectivity + Latency Test
+    # -----------------------------------------------------
+    try:
+        start = time.time()
+
+        # Simple DB ping: SELECT 1
+        db.session.execute(text("SELECT 1"))
+
+        latency = (time.time() - start) * 1000  # ms
+        health["database"] = "connected"
+        health["db_latency_ms"] = round(latency, 2)
+
+    except Exception as e:
+        # If DB fails, mark it offline but keep backend alive
+        health["database"] = "error"
+        health["db_latency_ms"] = None
+        health["db_error"] = str(e)
+
+    return jsonify(health)
+# ---------------------------------------------------------
+# Dashboard Summary API
+# ---------------------------------------------------------
+# This endpoint aggregates multiple system metrics into
+# one clean JSON response for the dashboard summary cards.
+#
+# It returns:
+#   - total_users: count from database
+#   - backend_status: always "online" if this endpoint works
+#   - database_status: "connected" or "error"
+#   - frontend_status: always "online" (React is running)
+#   - timestamp: when the summary was generated
+# ---------------------------------------------------------
+
+@app.route("/api/stats/summary", methods=["GET"])
+def dashboard_summary():
+    summary = {
+        "backend_status": "online",
+        "frontend_status": "online",  # React is serving the UI
+        "database_status": "unknown",
+        "total_users": 0,
+        "timestamp": datetime.utcnow().isoformat() + "Z",
+    }
+
+    # -----------------------------------------------------
+    # Count total users
+    # -----------------------------------------------------
+    try:
+        summary["total_users"] = User.query.count()
+    except Exception as e:
+        summary["total_users"] = None
+        summary["database_status"] = "error"
+        summary["db_error"] = str(e)
+
+    # -----------------------------------------------------
+    # Check DB connectivity (simple SELECT 1)
+    # -----------------------------------------------------
+    try:
+        db.session.execute(text("SELECT 1"))
+        summary["database_status"] = "connected"
+    except Exception as e:
+        summary["database_status"] = "error"
+        summary["db_error"] = str(e)
+
+    return jsonify(summary)
+

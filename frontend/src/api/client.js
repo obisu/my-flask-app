@@ -1,0 +1,5 @@
+export async function api(path, options = {}) {
+  const res = await fetch(path, options);
+  return res.json();
+}
+

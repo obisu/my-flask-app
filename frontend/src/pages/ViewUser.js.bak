@@ -1,0 +1,93 @@
+import React, { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { API_BASE } from "../config";   // <-- same fix as other pages
+
+function ViewUser() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // ----------------------------------------------------
+  // Load the user by ID
+  // ----------------------------------------------------
+  useEffect(() => {
+    async function loadUser() {
+      try {
+        const res = await fetch(`${API_BASE}/api/users`);
+        const data = await res.json();
+
+      //  const found = data.users.find((u) => u.id === Number(id));
+        const found = data.find((u) => u.id === Number(id));
+        setUser(found || null);
+      } catch (err) {
+        console.error("Failed to load user:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadUser();
+  }, [id]);
+
+  if (loading) {
+    return <p style={{ padding: "20px" }}>Loading user...</p>;
+  }
+
+  if (!user) {
+    return (
+      <div style={{ padding: "20px" }}>
+        <h1>User Not Found</h1>
+        <button
+          onClick={() => navigate("/users")}
+          style={{
+            marginTop: "20px",
+            padding: "10px 20px",
+            cursor: "pointer",
+          }}
+        >
+          Back to Users
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ padding: "20px" }}>
+      <h1>User Details</h1>
+
+      <div
+        style={{
+          background: "white",
+          padding: "20px",
+          borderRadius: "8px",
+          width: "300px",
+          boxShadow: "0 2px 6px rgba(0,0,0,0.1)",
+          marginTop: "20px",
+        }}
+      >
+        <p>
+          <strong>ID:</strong> {user.id}
+        </p>
+        <p>
+          <strong>Name:</strong> {user.name}
+        </p>
+      </div>
+
+      <button
+        onClick={() => navigate("/users")}
+        style={{
+          marginTop: "20px",
+          padding: "10px 20px",
+          cursor: "pointer",
+        }}
+      >
+        Back to Users
+      </button>
+    </div>
+  );
+}
+
+export default ViewUser;
+

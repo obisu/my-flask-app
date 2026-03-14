@@ -1,0 +1,16 @@
+frontend:
+  replicas: 1
+  containerPort: 80
+
+backend:
+  replicas: 1
+  containerPort: 5000
+
+image:
+  frontend:
+    repository: "ghcr.io/obisu/frontend"
+    tag: "latest"
+
+  backend:
+    repository: "ghcr.io/obisu/backend"
+    tag: "latest"

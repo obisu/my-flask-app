@@ -1,0 +1,5 @@
+{
+  "component": "ingress",
+  "status": "ok",
+  "message": "Ingress routing is alive"
+}
