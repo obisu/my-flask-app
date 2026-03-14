@@ -17,7 +17,7 @@ jobs:
 
       - name: Load kubeconfig
         run: |
-          echo "${{ secrets.KUBECONFIG_DATA_PRODUCTION }}" | base64 --decode > $HOME/.kube/config
+          echo "${{ secrets.KUBE_CONFIG }}" | base64 --decode > $HOME/.kube/config
 
       - name: Set up Helm
         uses: azure/setup-helm@v4
