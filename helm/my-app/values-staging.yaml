@@ -9,7 +9,8 @@ frontend:
 image:
   backend:
     repository: ghcr.io/obisu/my-flask-app/backend
-    tag: "staging"
+    tag: ""
   frontend:
     repository: ghcr.io/obisu/my-flask-app/frontend
-    tag: "staging"
+    tag: ""
+

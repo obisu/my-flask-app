@@ -9,7 +9,7 @@ frontend:
 image:
   backend:
     repository: ghcr.io/obisu/my-flask-app/backend
-    tag: "production"
+    tag: ""
   frontend:
     repository: ghcr.io/obisu/my-flask-app/frontend
-    tag: "production"
+    tag: ""

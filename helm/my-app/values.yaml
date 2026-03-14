@@ -1,16 +1,16 @@
-frontend:
-  replicas: 1
-  containerPort: 80
+environment: "default"
 
 backend:
   replicas: 1
-  containerPort: 5000
+
+frontend:
+  replicas: 1
 
 image:
-  frontend:
-    repository: "ghcr.io/obisu/frontend"
-    tag: "latest"
-
   backend:
-    repository: "ghcr.io/obisu/backend"
-    tag: "latest"
+    repository: ghcr.io/obisu/my-flask-app/backend
+    tag: ""
+  frontend:
+    repository: ghcr.io/obisu/my-flask-app/frontend
+    tag: ""
+

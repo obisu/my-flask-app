@@ -28,5 +28,8 @@ jobs:
             --namespace production \
             --create-namespace \
             --values helm/my-app/values-production.yaml \
+            --set image.backend.tag=${{ github.sha }} \
+            --set image.frontend.tag=${{ github.sha }} \
             --atomic \
             --timeout 5m
+
